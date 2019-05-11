@@ -1,0 +1,51 @@
+import flask
+from flask import jsonify, request
+import MySQLdb
+
+db = MySQLdb.connect("localhost","root","12345","sample" )
+cursor = db.cursor()
+
+sql = "SELECT * FROM studentofIndia"
+cursor.execute(sql)
+results = cursor.fetchall()
+dict_fact = []
+for row in results:
+    name = row[0]
+    age = row[1]
+    subject = row[2]
+    dict_fact.append({'name': name, 'age': age, 'subject': subject})
+
+
+
+app=flask.Flask(__name__)
+app.config["DEBUG"] = True
+
+@app.route('/', methods=['GET'])
+def home():
+    return "<h1>Welcome Students of India</h1><p>This site is a prototype API for Student Database.</p>" \
+
+@app.route('/api/v1/resources/students/all', methods=['GET'])
+def api_all():
+    return jsonify(dict_fact)
+
+@app.route('/api/v1/resources/students',methods=['GET'])
+def api_name():
+    if 'name' in request.args:
+        name = request.args['name']
+    else:
+        return "Error: No such name exist. Please specify correct name "
+
+
+    namefilter = []
+
+    for student in dict_fact:
+        if student['name'] == name:
+            namefilter.append(student)
+
+
+    return jsonify(namefilter)
+
+
+app.run()
+
+db.close()
